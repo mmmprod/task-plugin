@@ -1,10 +1,11 @@
 {
+  "owner": "mmmprod",
   "name": "mmmprod-plugins",
   "description": "Plugins by mmmprod",
   "plugins": [
     {
       "name": "task",
-      "path": "."
+      "source": "."
     }
   ]
 }
