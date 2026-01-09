@@ -1,5 +1,1 @@
-{
-  "name": "task",
-  "version": "0.1.0",
-  "description": "Complex Task Mode - Persistence + Recovery for long tasks"
-}
+{"name":"task","version":"0.1.0","description":"Complex Task Mode - Persistence + Recovery for long tasks"}
