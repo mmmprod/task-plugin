@@ -1,0 +1,14 @@
+﻿{
+  "hooks": [
+    {
+      "event": "PreCompact",
+      "description": "Update handoff before compact",
+      "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/precompact.js"
+    },
+    {
+      "event": "Stop",
+      "description": "Log decisions after each response",
+      "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/stop.js"
+    }
+  ]
+}
