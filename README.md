@@ -1,6 +1,10 @@
 <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/4a962993-0ee4-4281-90a8-3eeb2a515672" />
- 
- # Task Plugin
+
+[![GitHub release](https://img.shields.io/github/v/release/mmmprod/task-plugin)](https://github.com/mmmprod/task-plugin/releases)
+[![GitHub stars](https://img.shields.io/github/stars/mmmprod/task-plugin)](https://github.com/mmmprod/task-plugin/stargazers)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet)](https://claude.ai/claude-code)
+
+# Task Plugin
 
 Complex Task Mode for Claude Code — Persistence + Recovery for long tasks.
 
