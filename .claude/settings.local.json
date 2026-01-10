@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/precompact.js"
+            "command": "powershell -WindowStyle Hidden -Command \"node .claude/hooks/precompact.js\""
           }
         ]
       }
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/stop.js"
+            "command": "powershell -WindowStyle Hidden -Command \"node .claude/hooks/stop.js\""
           }
         ]
       }
