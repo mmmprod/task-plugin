@@ -5,5 +5,8 @@
   "author": {
     "name": "mmmprod"
   },
-  "homepage": "https://github.com/mmmprod/task-plugin"
+  "homepage": "https://github.com/mmmprod/task-plugin",
+  "repository": "https://github.com/mmmprod/task-plugin",
+  "license": "MIT",
+  "keywords": ["task-management", "productivity", "claude-code", "persistence", "gamification"]
 }
