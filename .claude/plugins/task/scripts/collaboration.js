@@ -82,9 +82,15 @@ function importTask(projectDir, taskData, newId = null) {
 
   fs.mkdirSync(taskPath, { recursive: true });
 
-  // Write files
+  // Write files (with path traversal protection)
+  const allowedFiles = ['plan.md', 'checklist.md', 'handoff.md', 'decisions.log'];
   for (const [filename, content] of Object.entries(taskData.files)) {
-    fs.writeFileSync(path.join(taskPath, filename), content);
+    const safeFilename = path.basename(filename);
+    if (!allowedFiles.includes(safeFilename)) {
+      console.warn(`Skipping unknown file: ${filename}`);
+      continue;
+    }
+    fs.writeFileSync(path.join(taskPath, safeFilename), content);
   }
 
   // Add import note to decisions log
@@ -233,7 +239,12 @@ if (require.main === module) {
         if (!fs.existsSync(importPath)) {
           throw new Error(`File not found: ${importPath}`);
         }
-        const importData = JSON.parse(fs.readFileSync(importPath, 'utf8'));
+        let importData;
+        try {
+          importData = JSON.parse(fs.readFileSync(importPath, 'utf8'));
+        } catch (parseError) {
+          throw new Error(`Invalid JSON in import file: ${parseError.message}`);
+        }
         const result = importTask(projectDir, importData);
         console.log(`\n✅ Task imported: ${result.newId}`);
         console.log(`   Original: ${result.originalId}`);
