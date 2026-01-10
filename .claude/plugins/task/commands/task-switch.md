@@ -21,6 +21,7 @@
    - If archived, ask user if they want to unarchive it (move back to active)
 
 4. **Switch to the task**:
+   - If task is archived, move it back to active: `.claude/task/archive/<task_id>/` → `.claude/task/<task_id>/`
    - Update `.claude/CLAUDE.md` to reference the new task:
    ```markdown
    # Active Task
