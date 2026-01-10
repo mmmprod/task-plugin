@@ -5,5 +5,24 @@
       "description": "Update task handoff before compact",
       "command": "node .claude/hooks/precompact.js"
     }
-  ]
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllText\\(''C:\\\\src\\\\task-plugin\\\\commands\\\\start.md'', [System.Text.Encoding]::Unicode\\)\")",
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllText\\(''C:\\\\src\\\\task-plugin\\\\commands\\\\status.md'', [System.Text.Encoding]::Unicode\\)\")",
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllText\\(''C:\\\\src\\\\task-plugin\\\\commands\\\\done.md'', [System.Text.Encoding]::Unicode\\)\")",
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllText\\(''C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\scripts\\\\precompact.js'', [System.Text.Encoding]::Unicode\\)\")",
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllText\\(''C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\scripts\\\\stop.js'', [System.Text.Encoding]::Unicode\\)\")",
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllText\\(''C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\commands\\\\start.md'', [System.Text.Encoding]::Unicode\\)\")",
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllText\\(''C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\commands\\\\status.md'', [System.Text.Encoding]::Unicode\\)\")",
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllText\\(''C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\commands\\\\done.md'', [System.Text.Encoding]::Unicode\\)\")",
+      "Bash(powershell -Command '$utf8 = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText\\(\"\"C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\scripts\\\\precompact.js\"\", \"\"// precompact hook`n\"\", $utf8\\)')",
+      "Bash(powershell -Command '$utf8 = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText\\(\"\"C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\scripts\\\\stop.js\"\", \"\"// stop hook`n\"\", $utf8\\)')",
+      "Bash(powershell -Command '$utf8 = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText\\(\"\"C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\commands\\\\start.md\"\", \"\"# Start task`n\"\", $utf8\\)')",
+      "Bash(powershell -Command '$utf8 = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText\\(\"\"C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\commands\\\\status.md\"\", \"\"# Show status`n\"\", $utf8\\)')",
+      "Bash(powershell -Command '$utf8 = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText\\(\"\"C:\\\\src\\\\task-plugin\\\\.claude\\\\plugins\\\\task\\\\commands\\\\done.md\"\", \"\"# Complete task`n\"\", $utf8\\)')",
+      "Bash(powershell -Command '$utf8 = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText\\(\"\"C:\\\\src\\\\task-plugin\\\\scripts\\\\precompact.js\"\", \"\"// precompact hook`n\"\", $utf8\\)')",
+      "Bash(powershell:*)"
+    ]
+  }
 }
