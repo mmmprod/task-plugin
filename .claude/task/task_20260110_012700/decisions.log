@@ -10,3 +10,9 @@
 [2026-01-10 01:55:50] Modified hooks to use wscript instead of powershell
 [2026-01-10T00:59:28.545Z] Response completed
 [2026-01-10T01:01:43.445Z] Response completed
+[2026-01-10 02:10:00] Found root cause: DUPLICATE HOOKS - both settings.local.json AND plugin hooks.json defining same hooks
+[2026-01-10 02:10:10] Fix: Removed hooks from settings.local.json, keep only plugin hooks
+[2026-01-10 02:10:20] Created self-contained VBS scripts (no cmd.exe args needed):
+  - .claude/plugins/task/scripts/precompact-hidden.vbs
+  - .claude/plugins/task/scripts/stop-hidden.vbs
+[2026-01-10 02:10:30] Updated plugin hooks.json to use self-contained VBS scripts

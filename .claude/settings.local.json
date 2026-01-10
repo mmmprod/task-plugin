@@ -3,29 +3,8 @@
     "allow": [
       "Bash(git check-ignore:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
-    ]
-  },
-  "hooks": {
-    "PreCompact": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "wscript //nologo .claude/hooks/run-hidden.vbs \"node .claude/hooks/precompact.js\""
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "wscript //nologo .claude/hooks/run-hidden.vbs \"node .claude/hooks/stop.js\""
-          }
-        ]
-      }
+      "Bash(git commit:*)",
+      "WebSearch"
     ]
   }
 }
