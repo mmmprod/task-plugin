@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -WindowStyle Hidden -Command \"node .claude/hooks/precompact.js\""
+            "command": "wscript //nologo .claude/hooks/run-hidden.vbs \"node .claude/hooks/precompact.js\""
           }
         ]
       }
@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -WindowStyle Hidden -Command \"node .claude/hooks/stop.js\""
+            "command": "wscript //nologo .claude/hooks/run-hidden.vbs \"node .claude/hooks/stop.js\""
           }
         ]
       }

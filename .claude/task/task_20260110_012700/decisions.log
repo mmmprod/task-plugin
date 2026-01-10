@@ -2,3 +2,10 @@
 [2026-01-10 01:27:30] Decision: Use PowerShell -WindowStyle Hidden to wrap node commands
 [2026-01-10 01:27:45] Modified: .claude/plugins/task/hooks/hooks.json
 [2026-01-10 01:27:45] Modified: .claude/settings.local.json
+[2026-01-10T00:55:56.208Z] Response completed
+[2026-01-10 01:55:00] PowerShell approach didn't work - CMD still flashing
+[2026-01-10 01:55:30] Decision: Switch to VBScript wrapper (run-hidden.vbs) - most reliable on Windows
+[2026-01-10 01:55:45] Created: .claude/hooks/run-hidden.vbs
+[2026-01-10 01:55:45] Created: .claude/plugins/task/scripts/run-hidden.vbs
+[2026-01-10 01:55:50] Modified hooks to use wscript instead of powershell
+[2026-01-10T00:59:28.545Z] Response completed
