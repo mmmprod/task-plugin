@@ -17,6 +17,10 @@ Complex Task Mode for Claude Code — Persistence + Recovery for long tasks.
 - `/task-done` — Complete and archive task
 - **PreCompact hook** — Auto-generates handoff before compact
 
+## ⚠️ Windows Users
+
+Hooks may cause console windows to flash briefly. This is a Claude CLI limitation — no workaround exists for fully hidden hook execution. The plugin works correctly despite the visual noise.
+
 ## Install
 
 Copy the `.claude/` folder to your project:
