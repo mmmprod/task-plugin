@@ -1,1 +1,4 @@
 [2026-01-10 01:27:00] Task created with goal: Fix CMD window flashing on Windows when hooks execute
+[2026-01-10 01:27:30] Decision: Use PowerShell -WindowStyle Hidden to wrap node commands
+[2026-01-10 01:27:45] Modified: .claude/plugins/task/hooks/hooks.json
+[2026-01-10 01:27:45] Modified: .claude/settings.local.json
