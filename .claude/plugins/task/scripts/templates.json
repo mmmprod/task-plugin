@@ -1,0 +1,90 @@
+{
+  "templates": {
+    "bugfix": {
+      "name": "Bug Fix",
+      "description": "For fixing bugs and issues",
+      "steps": [
+        "Reproduce the bug consistently",
+        "Identify root cause",
+        "Implement fix",
+        "Add/update tests",
+        "Verify fix resolves issue",
+        "Document in decisions.log"
+      ],
+      "successCriteria": [
+        "Bug is reproducible before fix",
+        "Bug no longer occurs after fix",
+        "No regression in related features",
+        "Test added to prevent recurrence"
+      ]
+    },
+    "feature": {
+      "name": "New Feature",
+      "description": "For implementing new functionality",
+      "steps": [
+        "Design feature approach",
+        "Implement core functionality",
+        "Handle edge cases",
+        "Add unit tests",
+        "Add integration tests",
+        "Update documentation",
+        "Self code review"
+      ],
+      "successCriteria": [
+        "Feature works as specified",
+        "Tests cover happy path and edge cases",
+        "Code follows project conventions",
+        "No performance regression"
+      ]
+    },
+    "refactor": {
+      "name": "Refactoring",
+      "description": "For code improvements without behavior changes",
+      "steps": [
+        "Analyze current implementation",
+        "Plan refactoring steps",
+        "Refactor incrementally",
+        "Run full test suite",
+        "Compare before/after metrics"
+      ],
+      "successCriteria": [
+        "Code is cleaner/more maintainable",
+        "All existing tests pass",
+        "No behavior changes",
+        "Performance equal or better"
+      ]
+    },
+    "hotfix": {
+      "name": "Hot Fix",
+      "description": "For urgent production fixes",
+      "steps": [
+        "Identify exact issue",
+        "Implement minimal fix",
+        "Quick verification test",
+        "Ready for deployment"
+      ],
+      "successCriteria": [
+        "Production issue resolved",
+        "Minimal changes made",
+        "No new issues introduced"
+      ]
+    },
+    "research": {
+      "name": "Research",
+      "description": "For exploration and investigation tasks",
+      "steps": [
+        "Define research scope",
+        "Explore option 1",
+        "Explore option 2",
+        "Document findings",
+        "Create prototype (optional)",
+        "Write recommendations"
+      ],
+      "successCriteria": [
+        "Problem space understood",
+        "Options documented with pros/cons",
+        "Recommendation provided"
+      ]
+    }
+  }
+}

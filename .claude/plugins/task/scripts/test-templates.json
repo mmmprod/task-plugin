@@ -1,0 +1,112 @@
+{
+  "templates": {
+    "feature": {
+      "name": "Feature Testing",
+      "description": "Comprehensive testing for new features",
+      "checklist": [
+        "Unit tests for new functions",
+        "Integration tests for feature flow",
+        "Edge case handling verified",
+        "Error scenarios covered",
+        "Performance acceptable (< 200ms response)",
+        "No console errors or warnings",
+        "Accessibility check (keyboard nav, screen reader)",
+        "Mobile/responsive verified",
+        "Cross-browser tested (if applicable)"
+      ]
+    },
+    "bugfix": {
+      "name": "Bug Fix Verification",
+      "description": "Verify bug is fixed without regression",
+      "checklist": [
+        "Bug reproduced before fix",
+        "Bug no longer occurs after fix",
+        "Root cause understood and documented",
+        "Regression test added",
+        "Related functionality still works",
+        "No new console errors",
+        "Performance not degraded"
+      ]
+    },
+    "refactor": {
+      "name": "Refactor Validation",
+      "description": "Ensure refactor doesn't break anything",
+      "checklist": [
+        "All existing tests pass",
+        "No behavior changes (unless intended)",
+        "Performance benchmark: before vs after",
+        "Code coverage maintained or improved",
+        "No new linting errors",
+        "Type checking passes",
+        "Manual smoke test of affected areas"
+      ]
+    },
+    "api": {
+      "name": "API Testing",
+      "description": "API endpoint testing checklist",
+      "checklist": [
+        "Happy path returns correct response",
+        "Invalid input returns proper error",
+        "Authentication/authorization works",
+        "Rate limiting tested (if applicable)",
+        "Response format matches schema",
+        "Error responses are consistent",
+        "Performance under load acceptable",
+        "API documentation updated"
+      ]
+    },
+    "ui": {
+      "name": "UI/UX Testing",
+      "description": "User interface testing checklist",
+      "checklist": [
+        "Visual appearance matches design",
+        "Responsive on mobile/tablet/desktop",
+        "Keyboard navigation works",
+        "Focus states visible",
+        "Loading states shown",
+        "Error states display correctly",
+        "Success feedback visible",
+        "Animations smooth (no jank)",
+        "Dark/light mode works (if applicable)"
+      ]
+    },
+    "security": {
+      "name": "Security Testing",
+      "description": "Security-focused testing checklist",
+      "checklist": [
+        "Input validation on all user inputs",
+        "SQL injection prevented",
+        "XSS prevented",
+        "CSRF protection in place",
+        "Authentication required where needed",
+        "Authorization checks correct",
+        "Sensitive data not logged",
+        "Secrets not exposed in code/config"
+      ]
+    },
+    "deployment": {
+      "name": "Deployment Checklist",
+      "description": "Pre-deployment verification",
+      "checklist": [
+        "All tests passing in CI",
+        "Build succeeds without warnings",
+        "Environment variables configured",
+        "Database migrations ready",
+        "Rollback plan documented",
+        "Monitoring/alerting set up",
+        "Feature flags configured (if used)",
+        "Changelog updated"
+      ]
+    },
+    "quick": {
+      "name": "Quick Smoke Test",
+      "description": "Minimal testing for small changes",
+      "checklist": [
+        "Change works as expected",
+        "No obvious regressions",
+        "Tests pass",
+        "Builds successfully"
+      ]
+    }
+  }
+}
