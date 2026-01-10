@@ -18,8 +18,12 @@ Complex Task Mode for Claude Code — Persistence + Recovery for long tasks.
 
 - `/task-start` — Create a task with plan, checklist, handoff, decisions log
 - `/task-status` — Show progress and recent decisions
+- `/task-switch` — Switch between multiple tasks or restore archived tasks
 - `/task-done` — Complete and archive task
 - **PreCompact hook** — Auto-generates handoff before compact
+- **Auto-archive** — Completed tasks move to archive folder
+- **Log rotation** — Decisions log auto-trims at 500 entries
+- **File locking** — Prevents race conditions on concurrent writes
 
 ## ⚠️ Windows Users
 
@@ -42,19 +46,22 @@ Or manually copy:
 ```
 /task-start "Migrate auth from JWT to OAuth2"
 /task-status
-/task-done
+/task-switch              # List and switch between tasks
+/task-done                # Complete and archive
 ```
 
 ## Files Created
 ```
 .claude/task/<task_id>/
-├── plan.md        # Task plan and approach
-├── checklist.md   # Progress tracking
-├── handoff.md     # Auto-updated before compact
-└── decisions.log  # Append-only audit trail
+├── plan.md           # Task plan and approach
+├── checklist.md      # Progress tracking
+├── handoff.md        # Auto-updated before compact
+└── decisions.log     # Append-only audit trail (auto-rotated)
+
+.claude/task/archive/     # Completed tasks stored here
+.claude/task/error.log    # Hook errors logged here
 ```
 
 ## Author
-
 
 [mmmprod](https://github.com/mmmprod)

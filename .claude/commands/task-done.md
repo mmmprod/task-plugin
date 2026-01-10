@@ -12,7 +12,16 @@
    - Append to decisions.log: "[TIMESTAMP] Task marked as complete"
    - Remove the task imports from `.claude/CLAUDE.md`
 
-4. Tell the user:
+4. **Archive the task**:
+   - Create `.claude/task/archive/` directory if it doesn't exist
+   - Move the entire task folder to `.claude/task/archive/<task_id>/`
+   - This keeps the task directory clean while preserving history
+
+5. Tell the user:
    - Task completed
    - Summary of what was accomplished
-   - Files remain in `.claude/task/<id>/` for reference
+   - Task archived to `.claude/task/archive/<task_id>/` for reference
+
+## Important
+- Always archive completed tasks to prevent accumulation
+- Never delete task files - archive them instead
