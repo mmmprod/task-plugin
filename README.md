@@ -2,6 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/mmmprod/task-plugin)](https://github.com/mmmprod/task-plugin/releases)
 [![GitHub stars](https://img.shields.io/github/stars/mmmprod/task-plugin)](https://github.com/mmmprod/task-plugin/stargazers)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet)](https://claude.ai/claude-code)
 
 # Task Plugin v2.0
