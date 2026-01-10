@@ -1,14 +1,14 @@
-﻿{
+{
   "hooks": [
     {
       "event": "PreCompact",
       "description": "Update handoff before compact",
-      "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/precompact-launcher.bat\""
+      "command": "wscript //nologo \"${CLAUDE_PLUGIN_ROOT}/scripts/precompact-hidden.vbs\""
     },
     {
       "event": "Stop",
       "description": "Log decisions after each response",
-      "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/stop-launcher.bat\""
+      "command": "wscript //nologo \"${CLAUDE_PLUGIN_ROOT}/scripts/stop-hidden.vbs\""
     }
   ]
 }

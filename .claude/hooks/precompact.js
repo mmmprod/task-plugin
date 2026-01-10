@@ -9,32 +9,36 @@ try {
   // Get active task (from CLAUDE.md or most recent valid)
   const activeTask = utils.getActiveTask(projectDir);
 
-  if (!activeTask) {
+  if (!activeTask || !utils.isValidTaskId(activeTask)) {
     process.exit(0);
   }
 
-  const taskPath = path.join(taskDir, activeTask);
+  // Path traversal protection
+  const taskPath = utils.safePathJoin(taskDir, activeTask);
 
-  // Read current files
+  // Validate task files exist
+  const validation = utils.validateTaskFiles(taskPath);
+  if (!validation.valid && !validation.canRepair) {
+    utils.logError(projectDir, new Error('Task corrupted: missing ' + validation.missing.join(', ')), 'precompact.js');
+    process.exit(0); // Don't block compact
+  }
+
+  // Read current files with locks
   const planPath = path.join(taskPath, 'plan.md');
   const checklistPath = path.join(taskPath, 'checklist.md');
   const decisionsPath = path.join(taskPath, 'decisions.log');
   const handoffPath = path.join(taskPath, 'handoff.md');
 
-  const plan = fs.existsSync(planPath)
-    ? fs.readFileSync(planPath, 'utf8')
-    : '';
-  const checklist = fs.existsSync(checklistPath)
-    ? fs.readFileSync(checklistPath, 'utf8')
-    : '';
-  const decisions = fs.existsSync(decisionsPath)
-    ? fs.readFileSync(decisionsPath, 'utf8')
-    : '';
+  const plan = utils.readFileLocked(planPath);
+  const checklist = utils.readFileLocked(checklistPath);
 
-  // Backup existing handoff before overwriting
-  utils.backupFile(handoffPath);
+  // Use efficient last lines reading for decisions
+  const recentDecisions = utils.readLastLines(decisionsPath, 20);
 
-  // Generate handoff - include FULL plan, not truncated
+  // Backup existing handoff before overwriting (with limit)
+  utils.backupFile(handoffPath, 5);
+
+  // Generate handoff - include FULL plan
   const timestamp = new Date().toISOString();
   const handoff = `# Handoff Notes
 
@@ -48,7 +52,7 @@ ${plan}
 ${checklist}
 
 ## Recent Decisions (last 20)
-${decisions.split('\n').slice(-20).join('\n')}
+${recentDecisions.join('\n')}
 
 ## Next Actions
 Continue from where this task left off. Check checklist for pending items.
@@ -63,18 +67,19 @@ Continue from where this task left off. Check checklist for pending items.
   // Log this action
   utils.appendFileLocked(
     decisionsPath,
-    `[${timestamp}] PreCompact: handoff.md updated automatically\n`
+    '[' + timestamp + '] PreCompact: handoff.md updated automatically\n'
   );
 
   console.log('Handoff updated for task:', activeTask);
 
 } catch (error) {
-  // Log error properly instead of silent fail
+  // Log error properly
   try {
     const projectDir = utils.getProjectDir();
     utils.logError(projectDir, error, 'precompact.js');
   } catch (e) {
     console.error('PreCompact error:', error.message);
   }
-  process.exit(1);
+  // Exit 0 to not block compact
+  process.exit(0);
 }

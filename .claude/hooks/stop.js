@@ -15,22 +15,25 @@ process.stdin.on('end', () => {
     // Get active task
     const activeTask = utils.getActiveTask(projectDir);
 
-    if (!activeTask) {
+    if (!activeTask || !utils.isValidTaskId(activeTask)) {
       process.exit(0);
     }
 
-    const logPath = path.join(taskDir, activeTask, 'decisions.log');
+    // Path traversal protection
+    const taskPath = utils.safePathJoin(taskDir, activeTask);
+    const logPath = path.join(taskPath, 'decisions.log');
+
     const timestamp = new Date().toISOString();
-    const entry = `[${timestamp}] Session stopped\n`;
+    const entry = '[' + timestamp + '] Session stopped\n';
 
     // Rotate log if needed
     utils.rotateLogIfNeeded(logPath);
 
-    // Append with lock
+    // Append with lock and fallback
     utils.appendFileLocked(logPath, entry);
 
   } catch (error) {
-    // Log error properly instead of silent fail
+    // Log error properly
     try {
       const projectDir = utils.getProjectDir();
       utils.logError(projectDir, error, 'stop.js');

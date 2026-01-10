@@ -2,41 +2,101 @@ const fs = require('fs');
 const path = require('path');
 
 // Constants
-const TASK_ID_PATTERN = /^task_\d{8}_\d{6}$/;
+const TASK_ID_PATTERN = /^task_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})$/;
 const MAX_LOG_LINES = 500;
 const LOCK_TIMEOUT = 5000;
+const LOCK_RETRY_DELAY = 50;
+const MAX_BACKUPS = 5;
+const MAX_DEPTH = 10;
+const CACHE_TTL = 1000;
+
+// Global state
+let taskCache = null;
+let cacheTime = 0;
+if (!global._activeLocks) global._activeLocks = new Set();
+
+// Cleanup locks on process exit
+process.on('exit', () => {
+  global._activeLocks.forEach(lockPath => {
+    try {
+      fs.unlinkSync(lockPath);
+    } catch (e) {
+      // Ignore
+    }
+  });
+});
 
 /**
- * Get project directory reliably
+ * Sleep for ms milliseconds
+ */
+function sleep(ms) {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    // Busy wait but short duration
+  }
+}
+
+/**
+ * Get project directory reliably with max depth limit
  */
 function getProjectDir() {
-  // Priority: env var > cwd with .claude check > cwd
+  // Priority: env var with validation
   if (process.env.CLAUDE_PROJECT_DIR) {
-    return process.env.CLAUDE_PROJECT_DIR;
+    const dir = process.env.CLAUDE_PROJECT_DIR;
+    if (fs.existsSync(path.join(dir, '.claude'))) {
+      return dir;
+    }
   }
 
-  const cwd = process.cwd();
-  if (fs.existsSync(path.join(cwd, '.claude'))) {
-    return cwd;
-  }
+  // Walk up to find .claude directory with depth limit
+  let dir = process.cwd();
+  let depth = 0;
 
-  // Walk up to find .claude directory
-  let dir = cwd;
-  while (dir !== path.dirname(dir)) {
+  while (dir !== path.dirname(dir) && depth < MAX_DEPTH) {
     if (fs.existsSync(path.join(dir, '.claude'))) {
       return dir;
     }
     dir = path.dirname(dir);
+    depth++;
   }
 
-  return cwd; // Fallback
+  throw new Error('.claude directory not found within ' + MAX_DEPTH + ' levels');
 }
 
 /**
- * Validate task ID format
+ * Validate task ID format with date validation
  */
 function isValidTaskId(taskId) {
-  return TASK_ID_PATTERN.test(taskId);
+  if (!taskId || typeof taskId !== 'string') return false;
+
+  const match = taskId.match(TASK_ID_PATTERN);
+  if (!match) return false;
+
+  const [_, year, month, day, hour, min, sec] = match.map(Number);
+
+  // Basic range validation
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+  if (hour < 0 || hour > 23) return false;
+  if (min < 0 || min > 59) return false;
+  if (sec < 0 || sec > 59) return false;
+
+  // Validate actual date
+  const date = new Date(year, month - 1, day, hour, min, sec);
+  return !isNaN(date.getTime());
+}
+
+/**
+ * Validate task directory has required files
+ */
+function validateTaskFiles(taskPath) {
+  const required = ['plan.md', 'checklist.md', 'handoff.md', 'decisions.log'];
+  const missing = required.filter(f => !fs.existsSync(path.join(taskPath, f)));
+  return {
+    valid: missing.length === 0,
+    missing,
+    canRepair: missing.length < required.length
+  };
 }
 
 /**
@@ -57,39 +117,63 @@ function getTasks(taskDir) {
 }
 
 /**
- * Get active task from CLAUDE.md or fallback to most recent
+ * Get active task from CLAUDE.md or fallback to most recent (with cache)
  */
-function getActiveTask(projectDir) {
+function getActiveTask(projectDir, useCache = true) {
+  // Check cache
+  if (useCache && taskCache && Date.now() - cacheTime < CACHE_TTL) {
+    return taskCache;
+  }
+
   const claudeMd = path.join(projectDir, '.claude', 'CLAUDE.md');
   const taskDir = path.join(projectDir, '.claude', 'task');
 
+  let result = null;
+
   // Try to read active task from CLAUDE.md
   if (fs.existsSync(claudeMd)) {
-    const content = fs.readFileSync(claudeMd, 'utf8');
-    const match = content.match(/@\.claude\/task\/(task_\d{8}_\d{6})\/plan\.md/);
-    if (match && isValidTaskId(match[1])) {
-      const taskPath = path.join(taskDir, match[1]);
-      if (fs.existsSync(taskPath)) {
-        return match[1];
+    try {
+      const content = fs.readFileSync(claudeMd, 'utf8');
+      const match = content.match(/@\.claude\/task\/(task_\d{8}_\d{6})\/plan\.md/);
+      if (match && isValidTaskId(match[1])) {
+        const taskPath = path.join(taskDir, path.basename(match[1])); // Path traversal protection
+        if (fs.existsSync(taskPath)) {
+          result = match[1];
+        }
       }
+    } catch (e) {
+      // Fall through to fallback
     }
   }
 
   // Fallback to most recent valid task
-  const tasks = getTasks(taskDir);
-  return tasks.length > 0 ? tasks[0] : null;
+  if (!result) {
+    const tasks = getTasks(taskDir);
+    result = tasks.length > 0 ? tasks[0] : null;
+  }
+
+  // Update cache
+  taskCache = result;
+  cacheTime = Date.now();
+
+  return result;
 }
 
 /**
- * Simple file lock using .lock file
+ * Atomic file lock using exclusive write
  */
 function acquireLock(filePath, timeout = LOCK_TIMEOUT) {
   const lockPath = filePath + '.lock';
-  const start = Date.now();
+  const startTime = Date.now();
+  const pid = process.pid.toString();
 
-  while (Date.now() - start < timeout) {
+  while (true) {
     try {
-      fs.writeFileSync(lockPath, process.pid.toString(), { flag: 'wx' });
+      // Atomic create - fails if file exists
+      const fd = fs.openSync(lockPath, 'wx');
+      fs.writeSync(fd, pid);
+      fs.closeSync(fd);
+      global._activeLocks.add(lockPath);
       return true;
     } catch (e) {
       if (e.code === 'EEXIST') {
@@ -97,24 +181,33 @@ function acquireLock(filePath, timeout = LOCK_TIMEOUT) {
         try {
           const stat = fs.statSync(lockPath);
           if (Date.now() - stat.mtimeMs > 30000) {
-            fs.unlinkSync(lockPath);
-            continue;
+            // Stale lock - try to remove it
+            try {
+              fs.unlinkSync(lockPath);
+              continue; // Retry immediately
+            } catch (unlinkErr) {
+              // Someone else removed it, retry
+              continue;
+            }
           }
-        } catch (err) {
+        } catch (statErr) {
           // Lock file gone, retry
           continue;
         }
-        // Wait and retry
-        const waitTime = Math.min(100, timeout - (Date.now() - start));
-        if (waitTime > 0) {
-          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, waitTime);
+
+        // Check timeout
+        if (Date.now() - startTime >= timeout) {
+          return false;
         }
+
+        // Wait before retry
+        sleep(LOCK_RETRY_DELAY);
       } else {
+        // Other error (permissions, etc.)
         return false;
       }
     }
   }
-  return false;
 }
 
 /**
@@ -124,17 +217,38 @@ function releaseLock(filePath) {
   const lockPath = filePath + '.lock';
   try {
     fs.unlinkSync(lockPath);
+    global._activeLocks.delete(lockPath);
   } catch (e) {
     // Ignore - lock may already be released
   }
 }
 
 /**
+ * Read file with lock
+ */
+function readFileLocked(filePath, timeout = LOCK_TIMEOUT) {
+  if (!fs.existsSync(filePath)) {
+    return '';
+  }
+
+  if (!acquireLock(filePath, timeout)) {
+    // Fallback: read without lock
+    return fs.readFileSync(filePath, 'utf8');
+  }
+
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } finally {
+    releaseLock(filePath);
+  }
+}
+
+/**
  * Write file with lock
  */
-function writeFileLocked(filePath, content) {
-  if (!acquireLock(filePath)) {
-    throw new Error(`Could not acquire lock for ${filePath}`);
+function writeFileLocked(filePath, content, timeout = LOCK_TIMEOUT) {
+  if (!acquireLock(filePath, timeout)) {
+    throw new Error('Could not acquire lock for ' + filePath);
   }
   try {
     fs.writeFileSync(filePath, content, 'utf8');
@@ -144,11 +258,15 @@ function writeFileLocked(filePath, content) {
 }
 
 /**
- * Append to file with lock
+ * Append to file with lock and fallback
  */
-function appendFileLocked(filePath, content) {
-  if (!acquireLock(filePath)) {
-    throw new Error(`Could not acquire lock for ${filePath}`);
+function appendFileLocked(filePath, content, timeout = LOCK_TIMEOUT) {
+  if (!acquireLock(filePath, timeout)) {
+    // Fallback: write to pending file
+    const pendingPath = filePath + '.pending';
+    fs.appendFileSync(pendingPath, content);
+    console.warn('Lock failed, wrote to ' + pendingPath);
+    return;
   }
   try {
     fs.appendFileSync(filePath, content, 'utf8');
@@ -158,29 +276,127 @@ function appendFileLocked(filePath, content) {
 }
 
 /**
- * Rotate log file if too large
+ * Read last N lines efficiently
  */
-function rotateLogIfNeeded(logPath, maxLines = MAX_LOG_LINES) {
-  if (!fs.existsSync(logPath)) return;
+function readLastLines(filePath, count) {
+  if (!fs.existsSync(filePath)) return [];
 
-  const content = fs.readFileSync(logPath, 'utf8');
-  const lines = content.split('\n');
+  const stat = fs.statSync(filePath);
+  if (stat.size === 0) return [];
 
-  if (lines.length > maxLines) {
-    // Keep last maxLines entries
-    const trimmed = lines.slice(-maxLines).join('\n');
-    writeFileLocked(logPath, trimmed);
+  // For small files, just read the whole thing
+  if (stat.size < 64 * 1024) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    return content.split('\n').slice(-count);
+  }
+
+  // For large files, read from the end
+  const bufferSize = 64 * 1024;
+  const fd = fs.openSync(filePath, 'r');
+
+  try {
+    let lines = [];
+    let position = stat.size;
+    const buffer = Buffer.alloc(bufferSize);
+    let leftover = '';
+
+    while (lines.length < count && position > 0) {
+      const readSize = Math.min(bufferSize, position);
+      position -= readSize;
+
+      fs.readSync(fd, buffer, 0, readSize, position);
+      const chunk = buffer.toString('utf8', 0, readSize) + leftover;
+      const chunkLines = chunk.split('\n');
+
+      leftover = chunkLines.shift() || '';
+      lines = chunkLines.concat(lines);
+    }
+
+    if (leftover && lines.length < count) {
+      lines.unshift(leftover);
+    }
+
+    return lines.slice(-count);
+  } finally {
+    fs.closeSync(fd);
   }
 }
 
 /**
- * Create backup of a file
+ * Clean old backup files
  */
-function backupFile(filePath) {
+function cleanOldBackups(dir, baseName, maxBackups = MAX_BACKUPS) {
+  try {
+    const pattern = new RegExp('^\\.' + baseName.replace('.', '\\.') + '\\.(\\d+)\\.bak$');
+    const backups = fs.readdirSync(dir)
+      .filter(f => pattern.test(f))
+      .map(f => ({
+        name: f,
+        time: parseInt(f.match(pattern)[1], 10)
+      }))
+      .sort((a, b) => b.time - a.time);
+
+    backups.slice(maxBackups).forEach(b => {
+      try {
+        fs.unlinkSync(path.join(dir, b.name));
+      } catch (e) {
+        // Ignore
+      }
+    });
+  } catch (e) {
+    // Ignore cleanup errors
+  }
+}
+
+/**
+ * Rotate log file if too large (with lock and backup)
+ */
+function rotateLogIfNeeded(logPath, maxLines = MAX_LOG_LINES) {
+  if (!fs.existsSync(logPath)) return;
+
+  if (!acquireLock(logPath)) {
+    return; // Skip rotation if can't get lock
+  }
+
+  try {
+    const content = fs.readFileSync(logPath, 'utf8');
+    const lines = content.split('\n');
+
+    if (lines.length > maxLines) {
+      // Backup before rotation
+      const dir = path.dirname(logPath);
+      const baseName = path.basename(logPath);
+      const backupPath = path.join(dir, '.' + baseName + '.' + Date.now() + '.bak');
+      fs.writeFileSync(backupPath, content);
+
+      // Keep last maxLines entries
+      const kept = lines.slice(-maxLines);
+      const header = '[ROTATED AT ' + new Date().toISOString() + ']\n';
+      fs.writeFileSync(logPath, header + kept.join('\n'));
+
+      // Clean old backups
+      cleanOldBackups(dir, baseName, 3);
+    }
+  } finally {
+    releaseLock(logPath);
+  }
+}
+
+/**
+ * Create backup of a file with limit
+ */
+function backupFile(filePath, maxBackups = MAX_BACKUPS) {
   if (!fs.existsSync(filePath)) return null;
 
-  const backupPath = filePath + '.backup';
+  const dir = path.dirname(filePath);
+  const baseName = path.basename(filePath);
+  const backupPath = path.join(dir, '.' + baseName + '.' + Date.now() + '.bak');
+
   fs.copyFileSync(filePath, backupPath);
+
+  // Clean old backups
+  cleanOldBackups(dir, baseName, maxBackups);
+
   return backupPath;
 }
 
@@ -190,7 +406,7 @@ function backupFile(filePath) {
 function logError(projectDir, error, context = '') {
   const logPath = path.join(projectDir, '.claude', 'task', 'error.log');
   const timestamp = new Date().toISOString();
-  const entry = `[${timestamp}] ${context}: ${error.message || error}\n${error.stack || ''}\n`;
+  const entry = '[' + timestamp + '] ' + context + ': ' + (error.message || error) + '\n' + (error.stack || '') + '\n';
 
   try {
     fs.appendFileSync(logPath, entry);
@@ -200,18 +416,32 @@ function logError(projectDir, error, context = '') {
   }
 }
 
+/**
+ * Safe path join with traversal protection
+ */
+function safePathJoin(baseDir, ...parts) {
+  const safeParts = parts.map(p => path.basename(p));
+  return path.join(baseDir, ...safeParts);
+}
+
 module.exports = {
   getProjectDir,
   isValidTaskId,
+  validateTaskFiles,
   getTasks,
   getActiveTask,
   acquireLock,
   releaseLock,
+  readFileLocked,
   writeFileLocked,
   appendFileLocked,
+  readLastLines,
   rotateLogIfNeeded,
   backupFile,
   logError,
+  safePathJoin,
+  cleanOldBackups,
   TASK_ID_PATTERN,
-  MAX_LOG_LINES
+  MAX_LOG_LINES,
+  MAX_BACKUPS
 };
