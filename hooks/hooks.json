@@ -3,12 +3,12 @@
     {
       "event": "PreCompact",
       "description": "Update handoff before compact",
-      "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/precompact.js"
+      "command": "wscript //nologo \"${CLAUDE_PLUGIN_ROOT}/scripts/precompact-hidden.vbs\""
     },
     {
       "event": "Stop",
       "description": "Log decisions after each response",
-      "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/stop.js"
+      "command": "wscript //nologo \"${CLAUDE_PLUGIN_ROOT}/scripts/stop-hidden.vbs\""
     }
   ]
 }
