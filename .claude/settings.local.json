@@ -1,5 +1,9 @@
 {
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true
-  }
+  "hooks": [
+    {
+      "event": "PreCompact",
+      "description": "Update task handoff before compact",
+      "command": "node .claude/hooks/precompact.js"
+    }
+  ]
 }

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mmmprod-plugins",
+  "description": "Plugins by mmmprod",
+  "owner": {
+    "name": "mmmprod",
+    "email": "contact@mmmprod.com"
+  },
+  "plugins": [
+    {
+      "name": "task",
+      "description": "Complex Task Mode - Persistence + Recovery for long tasks",
+      "source": "./"
+    }
+  ]
+}
